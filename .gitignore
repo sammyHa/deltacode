@@ -1,0 +1,14 @@
+# Secrets - never commit
+.env
+*.key
+*.pem
+*credentials*
+*secret*
+
+# Wazuh/Elastic exports that may contain sensitive data
+*.raw
+*.pcap
+
+# OS junk
+.DS_Store
+Thumbs.db

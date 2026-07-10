@@ -1,0 +1,32 @@
+title: Service Account Interactive Logon
+id: 7f3b2c1a-0000-0000-0000-REPLACE-ME  # 🔧 TODO (Sam): generate a UUID (uuidgen)
+status: experimental
+description: >
+  Detects interactive (type 2) or RemoteInteractive (type 10) logons by accounts
+  following the svc_* naming convention. Service accounts in DeltaCode are
+  provisioned for non-interactive use only; an interactive logon indicates
+  credential theft, misuse, or lateral movement.
+author: Samim Hakimi (DeltaCode Lab)
+date: 2026/07/10
+references:
+  - https://attack.mitre.org/techniques/T1078/002/
+tags:
+  - attack.privilege_escalation
+  - attack.lateral_movement
+  - attack.t1078.002
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4624
+    LogonType:
+      - 2
+      - 10
+    TargetUserName|startswith: 'svc_'
+  condition: selection
+falsepositives:
+  - Administrators testing service account credentials during provisioning
+    (observed in lab during initial iRedMail setup — tuned by pairing with a
+    change-window suppression list rather than whitelisting the accounts)
+level: high
