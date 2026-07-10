@@ -1,6 +1,12 @@
 # DeltaCode Network Architecture
 
+<<<<<<< HEAD
 ![DeltaCode Architecture](soc-architecture.png)
+=======
+> 🔧 **TODO (Sam):** Drop your color SVG network diagram in this folder as `deltacode-architecture.svg` and it will render below.
+
+![DeltaCode Architecture](deltacode-architecture.svg)
+>>>>>>> c328c0b (inital)
 
 ## VLAN Segmentation
 
