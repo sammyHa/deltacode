@@ -1,0 +1,34 @@
+title: Azure AD Impossible Travel with Risk Indicator
+id: 7c5a2f8e-91d4-4d92-a5bc-7c9e12345678
+status: experimental
+description: Detects Azure AD successful authentications where a user appears to authenticate from geographically impossible locations with additional risk indicators.
+author: Samim Hakimi
+date: 2026-07-15
+
+logsource:
+    product: azure
+    service: signin
+
+detection:
+
+    successfull_login:
+        eventName: UserLogin
+        status: Success
+
+      
+    suspicious_conditions:
+        authenticationRequirement:
+            - none
+            - singleFactorAuthentication
+
+      
+    correlation:
+        same userPrincipalName
+        AND different country
+        AND time different source IP
+        AND different deviceID
+        AND geo_distance > normal_travel_distance
+        AND time_difference < calculated_travel_time
+
+    condition: successfull_login AND suspicious_conditions
+  
