@@ -2,7 +2,7 @@
 
 > 🔧 **TODO (Sam):** Drop your color SVG network diagram in this folder as `deltacode-architecture.svg` and it will render below.
 
-![DeltaCode Architecture](soc-architecture.svg)
+![DeltaCode Architecture](/soc-architecture.svg)
 
 ## VLAN Segmentation
 
