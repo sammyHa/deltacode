@@ -31,4 +31,3 @@ detection:
         AND time_difference < calculated_travel_time
 
     condition: successfull_login AND suspicious_conditions
-  
