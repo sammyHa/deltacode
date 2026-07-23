@@ -1,0 +1,98 @@
+<!--
+  DeltaCode Detection Library
+  File:        detections/wazuh/sysmon_office_spawns_powershell.xml
+  Rule IDs:    100200 (base), 100201 (high-confidence), 100205/100206 (tuning)
+  Data source: Sysmon Event ID 1 (Process Creation) via wazuh-agent windows eventchannel
+  Sysmon cfg:  Olaf Hartong sysmon-modular - ProcessCreate include ruleset must not
+               exclude Office parents. Verify with:
+                 Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational -MaxEvents 5
+  ATT&CK:      T1566.001 (Spearphishing Attachment)
+               T1204.002 (User Execution: Malicious File)
+               T1059.001 (Command and Scripting Interpreter: PowerShell)
+  Author:      Samim Hakimi
+  Validation:  atomics/T1059.001 test #1, T1204.002 test #4
+-->
+
+<group name="sysmon,sysmon_process_creation,office_macro,deltacode,">
+
+  <!--
+    100200 - BASE
+    Any Office productivity application spawning a script interpreter.
+    Level 8: suspicious on its own, but legitimate in orgs that use Office
+    automation / VSTO add-ins. Acts as the anchor for the child rules below.
+  -->
+  <rule id="100200" level="8">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">(?i)\\(WINWORD|EXCEL|POWERPNT|MSACCESS|OUTLOOK|MSPUB|VISIO)\.EXE$</field>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(powershell|pwsh|powershell_ise)\.exe$</field>
+    <description>Office application spawned PowerShell: $(win.eventdata.parentImage) -> $(win.eventdata.image) on $(win.system.computer)</description>
+    <mitre>
+      <id>T1204.002</id>
+      <id>T1059.001</id>
+    </mitre>
+    <group>office_spawns_interpreter,attack.execution,</group>
+  </rule>
+
+  <!--
+    100201 - HIGH CONFIDENCE
+    Office -> PowerShell where the command line carries execution-policy bypass,
+    hidden window, encoded payload, or in-memory download-cradle indicators.
+    This combination has effectively no benign explanation in an enterprise.
+    Level 12 -> crosses the level>=10 threshold and forwards to TheHive.
+
+    Regex coverage:
+      -ep / -exec / -executionpolicy bypass|unrestricted   (truncation-tolerant)
+      -w hidden / -windowstyle hidden
+      -enc / -encodedcommand
+      IEX / Invoke-Expression
+      DownloadString / DownloadFile / Net.WebClient / Invoke-WebRequest / iwr / curl
+      FromBase64String
+      -nop / -noprofile
+  -->
+  <rule id="100201" level="12">
+    <if_sid>100200</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(-e(p|x|xec|xecutionpolicy)?\s+(bypass|unrestricted)|-w(indowstyle)?\s+hidden|-e(nc|ncodedcommand)\s+|\bIEX\b|Invoke-Expression|DownloadString|DownloadFile|Net\.WebClient|Invoke-WebRequest|\biwr\b|FromBase64String|-nop\b|-noprofile\b)</field>
+    <description>Office macro execution: $(win.eventdata.parentImage) spawned PowerShell with suspicious arguments on $(win.system.computer) [user: $(win.eventdata.user)]</description>
+    <mitre>
+      <id>T1566.001</id>
+      <id>T1204.002</id>
+      <id>T1059.001</id>
+    </mitre>
+    <group>office_macro_execution,attack.initial_access,attack.execution,</group>
+  </rule>
+
+  <!--
+    100205 - TUNING / ALLOWLIST  (level 0 = suppressed)
+    Populate with your own environment's legitimate Office automation.
+    Keep this list SHORT and justify every entry in the FP audit trail
+    (detections/fp-audit/README.md) - a bloated allowlist is how this rule dies.
+
+    Example below suppresses a signed internal reporting add-in running from a
+    fixed path under a service account. Commented out by default.
+  -->
+  <!--
+  <rule id="100205" level="0">
+    <if_sid>100201</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)C:\\Program Files\\Contoso\\ReportBuilder\\generate\.ps1</field>
+    <field name="win.eventdata.user" type="pcre2">(?i)^CORP\\svc_reporting$</field>
+    <description>Allowlisted: Contoso ReportBuilder scheduled export - see fp-audit/FP-0007</description>
+  </rule>
+  -->
+
+  <!--
+    100206 - ESCALATION
+    Same host triggers 100201 three or more times in 5 minutes. Indicates either
+    a document detonating repeatedly or a broad phishing wave landing on one user.
+  -->
+  <rule id="100206" level="14" frequency="3" timeframe="300">
+    <if_matched_sid>100201</if_matched_sid>
+    <same_field>win.system.computer</same_field>
+    <description>Repeated Office-to-PowerShell macro execution on $(win.system.computer) - possible active phishing detonation</description>
+    <mitre>
+      <id>T1566.001</id>
+      <id>T1059.001</id>
+    </mitre>
+    <group>office_macro_execution,attack.initial_access,</group>
+  </rule>
+
+</group>

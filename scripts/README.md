@@ -4,7 +4,7 @@ Custom automation glue for the DeltaCode stack.
 
 ## Wazuh → TheHive Integration (Python)
 
-Forwards Wazuh alerts into TheHive as cases with MITRE ATT&CK tags carried through from rule metadata, triggering automatic Cortex enrichment (VirusTotal, AbuseIPDB, MaxMind, URLScan, Shodan).
+Forwards Wazuh alerts into TheHive as cases with MITRE ATT&CK tags carried through from rule metadata, triggering automatic Cortex enrichment (VirusTotal, AbuseIPDB, URLScan, Shodan).
 
 > 🔧 **TODO (Sam):** Add `wazuh_to_thehive.py` — **strip all API keys first** and replace with environment variable references (`os.environ["THEHIVE_API_KEY"]`). Add a `.env.example` file showing required variables. Never commit real keys; if any were ever in the file's history, rotate them.
 

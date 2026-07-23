@@ -16,7 +16,7 @@
 
 ## Traffic Visibility
 
-- SPAN/mirror from the Arista 7150 feeds the NSM sensor
+- SPAN/mirror from the Arista 7050 feeds the NSM sensor
 - Suricata provides signature-based IDS alerting
 - Zeek provides protocol metadata (conn, dns, http, ssl, files logs)
 - Filebeat 8.x ships Zeek logs → Elasticsearch (dedicated pipeline)
